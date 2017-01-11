@@ -12,12 +12,28 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        
+        CoreDataStack.shared.performForegroundTask { (context) in
+            let entity = Entity(context: context)
+            
+            do {
+                try context.obtainPermanentIDs(for: [entity])
+            } catch {
+                print("Error obtaining permanent ID for session info record")
+                return
+            }
+            
+            CoreDataStack.shared.saveViewContextAndWait()
+            
+            DispatchQueue.main.async {
+                guard entity.objectID.isTemporaryID == false else {
+                    print("ObjectID is temporary")
+                    return
+                }
+                
+                print("Success")
+            }
+        }
     }
 
 
